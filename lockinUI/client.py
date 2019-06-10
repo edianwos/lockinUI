@@ -78,7 +78,7 @@ class MyApp(QtWidgets.QWidget):
         self.button.clicked.connect(self.ws_start)
         self.websocket.measured.connect(self.get_values)
 
-        self.setWindowTitle("pqtplot")
+        self.setWindowTitle("Lockin-sweeper")
         self.setGeometry(300, 300, 600, 500)
         self.show()
 
@@ -94,7 +94,6 @@ class MyApp(QtWidgets.QWidget):
         with self.db_conn:
             insert_record(self.db_conn, (self.websocket.rec_id, ))
         self.websocket.start()
-
 
     @QtCore.pyqtSlot('PyQt_PyObject')
     def get_values(self, resp):
