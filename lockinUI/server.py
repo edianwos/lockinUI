@@ -1,42 +1,40 @@
-from datetime import datetime
-from time import sleep, time
-import pyqtgraph as pg
-from db import *
-from measure import *
+import aiohttp
+from aiohttp import web
+from driver import *
+
+async def hello(request):
+    return web.Response(text="Server is alive!")
+
+async def websocket_handler(request):
+    ws = web.WebSocketResponse()
+    await ws.prepare(request)
+
+    async for msg in ws:
+        if msg.type == aiohttp.WSMsgType.TEXT:
+            if msg.data == 'close':
+                await ws.close()
+            else:
+                resp = msg_parse(msg)
+                await ws.send_str(resp)
+        elif msg.type == aiohttp.WSMsgType.ERROR:
+            print('ws connection closed with exception %s' %
+                  ws.exception())
+
+    print('websocket connection closed')
+
+    return ws
 
 
-data_fields = {'amplitude': 'real', 'phase': 'real', 'TC': 'real',
-                'ST': 'real', 'timestamp': 'timestamp'}
-records_fields = {'name': 'text NOT NULL'}
-db_file = "db.db"
+def msg_parse(msg):
+    order = msg.json()
+    if order['action'] == 'measure':
+        return str(fake_measure())
+    elif order['action'] == 'set':
+        return 'success'
+    else:
+        return 'wrong message!'
 
-datetime_format = '%Y%m%d%H%M%S'
-
-if __name__ == "__main__":
-    conn = init_db(db_file, records_fields, data_fields)
-    r = linear_scan(1000, 2000, num=11, TC=0.1)
-    rec_id = datetime.now().strftime(datetime_format)
-    print(rec_id)
-    with conn:
-        insert_record(conn, (rec_id, ))
-    t1 = time()
-    freq_last = 0
-    TC_last = 0
-    for i in r:
-        freq, TC, ST = i
-        if freq_last != freq:
-            set_frequency(freq)
-            freq_last = freq
-        if TC_last != TC:
-            set_TC(TC)
-            TC_last = TC
-        sleep(ST)
-        amp, phase = fake_measure()
-        ts = datetime.now()
-        with conn:
-            insert_datum(conn, (rec_id, amp, phase, TC, ST, ts))
-        pg.plot()
-    t2 = time()
-    print(t2-t1)
-    
-    conn.close()
+app = web.Application()
+app.add_routes([web.get('/', hello)])
+app.add_routes([web.get('/ws', websocket_handler)])
+web.run_app(app)

@@ -17,8 +17,6 @@ def init_db(db_file: str, records_fields: dict, data_fields: dict):
     {},
     FOREIGN KEY (records_name) REFERENCES records (name)
     );""".format(',\n'.join([i+' '+j for i, j in data_fields.items()]))
-    print(records_sql)
-    print(data_sql)
     try:
         conn = sqlite3.connect(db_file)
         with conn:
@@ -35,7 +33,7 @@ def insert_record(conn, record: tuple):
 
 
 def insert_datum(conn, datum: tuple):
-    sql = 'INSERT INTO data (records_name, amplitude, phase, TC, ST, timestamp)\
-                 VALUES(?, ?, ?, ?, ?, ?)'
+    sql = 'INSERT INTO data (records_name, frequency, amplitude, phase, TC, ST, timestamp)\
+                 VALUES(?, ?, ?, ?, ?, ?, ?)'
     conn.execute(sql, datum)
 
