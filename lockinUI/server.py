@@ -1,9 +1,18 @@
 import aiohttp
 from aiohttp import web
-from driver import *
+from driver import LockIn
+import visa
+
+rm = visa.ResourceManager()
+inst = rm.open_resource(rm.list_resources()[0])
+assert "LI5660" in inst.query("*IDN?")
+
+lockin = LockIn(inst)
+
 
 async def hello(request):
     return web.Response(text="Server is alive!")
+
 
 async def websocket_handler(request):
     ws = web.WebSocketResponse()
@@ -28,11 +37,16 @@ async def websocket_handler(request):
 def msg_parse(msg):
     order = msg.json()
     if order['action'] == 'measure':
-        return str(fake_measure())
+        return lockin.fetch()
     elif order['action'] == 'set':
+        if order['target'] == 'frequency':
+            lockin.frequency = float(order['value'])
+        elif order['target'] == 'TC':
+            lockin.TC = float(order['value'])
         return 'success'
     else:
         return 'wrong message!'
+
 
 app = web.Application()
 app.add_routes([web.get('/', hello)])

@@ -5,7 +5,7 @@ import sqlite3
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtWidgets, QtCore
 
-from driver import *
+from measurement_routine import linear_scan
 
 from time import time, sleep
 
@@ -57,6 +57,14 @@ def insert_datum(conn, datum: tuple):
     conn.execute(datum_insert_sql, datum)
 
 
+def set_frequency(freq: float):
+    return {'action': 'set', "target": "frequency", "value": freq}
+
+
+def set_TC(TC: float):
+    return {'action': 'set', "target": "TC", "value": TC}
+
+
 class MyApp(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -88,7 +96,7 @@ class MyApp(QtWidgets.QWidget):
     def ws_start(self):
         self.xs = []
         self.ys = []
-        self.websocket.que = linear_scan(1000, 2000, num=6, TC=0.1)
+        self.websocket.que = linear_scan(32000, 33000, num=100, TC=0.1)
         self.websocket.rec_id = datetime.now().strftime(datetime_format)
         print(self.websocket.rec_id)
         with self.db_conn:
@@ -126,10 +134,14 @@ class Websocket(QtCore.QThread):
                 for i in self.que:
                     freq, TC, ST = i
                     if freq_last != freq:
-                        set_frequency(freq)
+                        await ws.send_json(set_frequency(freq))
+                        msg = await ws.receive()
+                        assert msg.data == 'success'
                         freq_last = freq
                     if TC_last != TC:
-                        set_TC(TC)
+                        await ws.send_json(set_TC(freq))
+                        msg = await ws.receive()
+                        assert msg.data == 'success'
                         TC_last = TC
                     t1 = time()
                     await asyncio.sleep(ST)
@@ -137,7 +149,7 @@ class Websocket(QtCore.QThread):
                     print(t2-t1)
                     await ws.send_json({'action': 'measure'})
                     msg = await ws.receive()
-                    amp, phase = [float(i) for i in msg.data[1:-1].split(", ")]
+                    amp, phase = [float(i) for i in msg.data.split(",")]
                     ts = datetime.now()
                     self.measured.emit((freq, amp, phase, TC, ST, ts))
         self.sequence_over.emit()
