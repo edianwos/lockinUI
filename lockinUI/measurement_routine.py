@@ -4,6 +4,7 @@ from math import log10, pi
 Point = namedtuple("Point", ['frequency', 'TC', 'ST'])
 twopi = pi*2
 
+# TC 계산을 합리적으로 하는 방법 강구해야 함
 def linear_scan(start, end, num=11, step=0, TCauto=True, STmult=5, average=1):
     span = end - start
     if step == 0:

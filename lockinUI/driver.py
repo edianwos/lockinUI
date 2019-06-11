@@ -10,51 +10,36 @@ class LockIn:
         self.inst.write("*RST")
         self.inst.write("FILTer:SLOPe 6")
         self.inst.write("ROUTe2 IOSC")  # reference is internal oscillator
-        self._frequency = float(self.inst.query("FREQ?"))
-        self._TC = float(self.inst.query("FILT:TCON?"))
-        self._output = float(self.inst.query("SOUR:VOLT ?"))
 
     @property
     def frequency(self):
-        try:
-            return self._frequency
-        except AttributeError:
-            return float(self.inst.query("SOUR:FREQ?"))
+        return float(self.inst.query("SOUR:FREQ?"))
 
     @frequency.setter
     def frequency(self, value):
         resp = self.inst.write("SOUR:FREQ {:7E}".format(value))
-        if resp[1] == 0:
-            self._frequency = value
-        else:
+        if resp[1] != 0:
             raise Exception
 
     @property
     def TC(self):
-        try:
-            return self._TC
-        except AttributeError:
-            return float(self.inst.query("FILT:TCON?"))
+        return float(self.inst.query("FILT:TCON?"))
 
     @TC.setter
     def TC(self, value):
         resp = self.inst.write("FILT:TCON {:7E}".format(value))
-        if resp[1] == 0:
-            self._TC = value
-        else:
+        if resp[1] != 0:
             raise Exception
 
     @property
     def output(self):
         return float(self.inst.query("SOUR:VOLT?"))
-        # return self._output
 
     @output.setter
     def output(self, value):
+        assert 0 <= value <= 1
         resp = self.inst.write("SOUR:VOLT {}".format(value))
-        if resp[1] == 0:
-            self._output = value
-        else:
+        if resp[1] != 0:
             raise Exception
 
     def fetch(self):

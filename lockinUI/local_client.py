@@ -58,6 +58,12 @@ class MainWindow(TemplateBaseClass):
     def set_TC(self):
         self.setup.inst.TC = float(self.ui.TCLineEdit.text())
 
+    def log_lin_toggle(self, logscale):
+        """there is no official way to turn back linear plot.
+        This will be implemented later."""
+        pass
+
+
     def sweep(self):
         start = float(self.ui.startLineEdit.text())
         end = float(self.ui.endLineEdit.text())
@@ -119,8 +125,8 @@ class Setup(QtCore.QThread):
     def run(self):
         freq_last = self.inst.frequency
         TC_last = self.inst.TC
+        t1 = time()
         for i in self.que:
-            t1 = time()
             freq, TC, ST = i
             if freq_last != freq:
                 self.inst.frequency = freq
@@ -132,8 +138,8 @@ class Setup(QtCore.QThread):
             amp, phase = [float(i) for i in self.inst.fetch().split(",")]
             ts = datetime.now()
             self.measured.emit((freq, amp, phase, TC, ST, ts))
-            t2 = time()
-            print(t2-t1)
+        t2 = time()
+        print("whole time is ", t2-t1)
         self.sequence_over.emit()
 
 
