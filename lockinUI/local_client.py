@@ -1,7 +1,6 @@
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 import visa
-import sqlite3
 
 import os
 from time import time, sleep
@@ -10,7 +9,7 @@ from math import cos, sin, pi
 
 from driver import LockIn
 from db import DataBase
-from measurement_routine import linear_scan
+from measurement_routine import linear_scan, log_scan
 
 
 datetime_format = '%Y%m%d%H%M%S'
@@ -21,6 +20,9 @@ data_fields = {'frequency': 'real', 'amplitude': 'real',
                'phase': 'real', 'TC': 'real', 'ST': 'real',
                'timestamp': 'timestamp'}
 records_fields = {'name': 'integer NOT NULL'}
+# dictionary 순서 sql문에 올바른 순서로 들어갈 수 있도록 로직 필요
+# python 3.7부터 dictionary는 순서가 고정이므로 굳이 바꿀 필요는 없음.
+# 하지만 더 안전한 프로그래밍을 위해서 하면 좋을 것.
 
 # Define main window class from template
 path = os.path.dirname(os.path.abspath(__file__))
@@ -41,6 +43,9 @@ class MainWindow(TemplateBaseClass):
 
         self.initRS()
 
+    def __del__(self):
+        self.db.conn.close()
+
     def initRS(self):
         self.setup = Setup()
         self.setup.measured.connect(self.save_values)
@@ -57,10 +62,10 @@ class MainWindow(TemplateBaseClass):
         start = float(self.ui.startLineEdit.text())
         end = float(self.ui.endLineEdit.text())
         number = int(self.ui.numberLineEdit.text())
-        average = int(self.ui.averageLineEdit.text())
+        av = int(self.ui.averageLineEdit.text())
         autoTC = self.ui.autoTCCheckBox.isChecked()
         logsweep = self.ui.logsweepCheckBox.isChecked()
-        print(start, end, number, average, autoTC, logsweep)
+        print(start, end, number, av, autoTC, logsweep)
 
         self.freqs = []
         self.amps = []
@@ -71,7 +76,12 @@ class MainWindow(TemplateBaseClass):
         self.setup.rec_id = datetime.now().strftime(datetime_format)
         self.db.insert_record((self.setup.rec_id,))
 
-        self.setup.que = linear_scan(start, end, num=number, average=average)
+        if logsweep == True:
+            print("log sweep!")
+            self.setup.que = log_scan(start, end, num=number, average=av)
+        else:
+            print("sequential sweep")
+            self.setup.que = linear_scan(start, end, num=number, average=av)
         self.setup.start()
 
     def save_values(self, data):
@@ -103,7 +113,6 @@ class Setup(QtCore.QThread):
     def __del__(self):
         self.inst.close()
         self.rm.close()
-        self.db.conn.close()
 
     def run(self):
         freq_last = self.inst.frequency
