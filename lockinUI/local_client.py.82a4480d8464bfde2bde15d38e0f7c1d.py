@@ -9,7 +9,6 @@ from datetime import datetime
 from math import cos, sin, pi
 
 from driver import LockIn
-from db import DataBase
 from measurement_routine import linear_scan
 
 
@@ -17,9 +16,7 @@ datetime_format = '%Y%m%d%H%M%S'
 
 db_file = "db.db"
 
-data_fields = {'frequency': 'real', 'amplitude': 'real',
-               'phase': 'real', 'TC': 'real', 'ST': 'real',
-               'timestamp': 'timestamp'}
+data_fields = {'frequency': 'real', 'amplitude': 'real', 'phase': 'real', 'TC': 'real', 'ST': 'real', 'timestamp': 'timestamp'}
 records_fields = {'name': 'integer NOT NULL'}
 
 # Define main window class from template
@@ -43,7 +40,7 @@ class MainWindow(TemplateBaseClass):
 
     def initRS(self):
         self.setup = Setup()
-        self.setup.measured.connect(self.plot_values)
+        self.setup.measured.connect(self.get_values)
         # 초기화 및 초기값 미리 칸에 적어놓는 코드 필요
 
     def set_output(self):
@@ -64,7 +61,7 @@ class MainWindow(TemplateBaseClass):
         self.setup.que = linear_scan(start, end, num=number, average=average)
         self.setup.start()
 
-    def plot_values(self):
+    def get_values(self):
         self.ui.ampplotter.clear()
         self.ui.ampplotter.plot(self.setup.freqs, self.setup.amps)
         self.ui.phaseplotter.clear()
@@ -88,11 +85,9 @@ class Setup(QtCore.QThread):
         self.xs = []
         self.ys = []
 
-
     def __del__(self):
         self.inst.close()
         self.rm.close()
-        self.db.conn.close()
 
     def run(self):
         self.freqs = []
@@ -100,9 +95,6 @@ class Setup(QtCore.QThread):
         self.phases = []
         self.xs = []
         self.ys = []
-        rec_id = datetime.now().strftime(datetime_format)
-        self.db = DataBase(db_file, records_fields, data_fields)
-        self.db.insert_record((rec_id,))
         freq_last = self.inst.frequency
         TC_last = self.inst.TC
         for i in self.que:
@@ -122,14 +114,10 @@ class Setup(QtCore.QThread):
             self.phases.append(phase)
             self.xs.append(amp*cos(phase*pi/180))
             self.ys.append(amp*sin(phase*pi/180))
-            self.db.insert_datum((rec_id, freq, amp, phase, TC, ST, ts))
             self.measured.emit()
             t2 = time()
             print(t2-t1)
         self.sequence_over.emit()
-
-
-class DB()
 
 
 if __name__ == "__main__":
