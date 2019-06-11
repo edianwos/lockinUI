@@ -4,11 +4,11 @@ from math import log10, pi
 Point = namedtuple("Point", ['frequency', 'TC', 'ST'])
 twopi = pi*2
 
-def linear_scan(start, end, num=11, step=0, TC=0, STmult=5, average=1):
+def linear_scan(start, end, num=11, step=0, TCauto=True, STmult=5, average=1):
     span = end - start
     if step == 0:
         step = span / (num-1)
-    if TC == 0:
+    if TCauto == True:
         TC = 1 / (twopi * abs(step))
 
     ST = TC * STmult
@@ -19,9 +19,9 @@ def linear_scan(start, end, num=11, step=0, TC=0, STmult=5, average=1):
         freq += step
 
 
-def log_scan(start, end, num=11, step=0, TC=0, STmult=5, average=1):
+def log_scan(start, end, num=11, step=0, TCauto=True, STmult=5, average=1):
     assert step == 0
-    assert TC == 0
+    assert TCauto == True
 
     log_start = log10(start)
     log_end = log10(end)

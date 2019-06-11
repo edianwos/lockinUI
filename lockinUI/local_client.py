@@ -78,10 +78,12 @@ class MainWindow(TemplateBaseClass):
 
         if logsweep == True:
             print("log sweep!")
-            self.setup.que = log_scan(start, end, num=number, average=av)
+            self.setup.que = log_scan(
+                start, end, num=number, TCauto=autoTC, average=av)
         else:
             print("sequential sweep")
-            self.setup.que = linear_scan(start, end, num=number, average=av)
+            self.setup.que = linear_scan(
+                start, end, num=number, TCauto=autoTC, average=av)
         self.setup.start()
 
     def save_values(self, data):
