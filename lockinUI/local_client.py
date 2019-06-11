@@ -43,7 +43,8 @@ class MainWindow(TemplateBaseClass):
 
     def initRS(self):
         self.setup = Setup()
-        self.setup.measured.connect(self.plot_values)
+        self.setup.measured.connect(self.save_values)
+        self.db = DataBase(db_file, records_fields, data_fields)
         # 초기화 및 초기값 미리 칸에 적어놓는 코드 필요
 
     def set_output(self):
@@ -61,20 +62,36 @@ class MainWindow(TemplateBaseClass):
         logsweep = self.ui.logsweepCheckBox.isChecked()
         print(start, end, number, average, autoTC, logsweep)
 
+        self.freqs = []
+        self.amps = []
+        self.phases = []
+        self.xs = []
+        self.ys = []
+
+        self.setup.rec_id = datetime.now().strftime(datetime_format)
+        self.db.insert_record((self.setup.rec_id,))
+
         self.setup.que = linear_scan(start, end, num=number, average=average)
         self.setup.start()
 
-    def plot_values(self):
+    def save_values(self, data):
+        freq, amp, phase, TC, ST, ts = data
+        self.freqs.append(freq)
+        self.amps.append(amp)
+        self.phases.append(phase)
+        self.xs.append(amp*cos(phase*pi/180))
+        self.ys.append(amp*sin(phase*pi/180))
+        self.db.insert_datum((self.setup.rec_id, freq, amp, phase, TC, ST, ts))
         self.ui.ampplotter.clear()
-        self.ui.ampplotter.plot(self.setup.freqs, self.setup.amps)
+        self.ui.ampplotter.plot(self.freqs, self.amps)
         self.ui.phaseplotter.clear()
-        self.ui.phaseplotter.plot(self.setup.freqs, self.setup.phases)
+        self.ui.phaseplotter.plot(self.freqs, self.phases)
         self.ui.xyplotter.clear()
-        self.ui.xyplotter.plot(self.setup.xs, self.setup.ys)
+        self.ui.xyplotter.plot(self.xs, self.ys)
 
 
 class Setup(QtCore.QThread):
-    measured = QtCore.pyqtSignal()
+    measured = QtCore.pyqtSignal('PyQt_PyObject')
     sequence_over = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
@@ -82,12 +99,6 @@ class Setup(QtCore.QThread):
         self.rm = visa.ResourceManager()
         self.inst = LockIn(self.rm.open_resource('GPIB0::1::INSTR'))
         self.que = []
-        self.freqs = []
-        self.amps = []
-        self.phases = []
-        self.xs = []
-        self.ys = []
-
 
     def __del__(self):
         self.inst.close()
@@ -95,14 +106,6 @@ class Setup(QtCore.QThread):
         self.db.conn.close()
 
     def run(self):
-        self.freqs = []
-        self.amps = []
-        self.phases = []
-        self.xs = []
-        self.ys = []
-        rec_id = datetime.now().strftime(datetime_format)
-        self.db = DataBase(db_file, records_fields, data_fields)
-        self.db.insert_record((rec_id,))
         freq_last = self.inst.frequency
         TC_last = self.inst.TC
         for i in self.que:
@@ -117,19 +120,10 @@ class Setup(QtCore.QThread):
             sleep(ST)
             amp, phase = [float(i) for i in self.inst.fetch().split(",")]
             ts = datetime.now()
-            self.freqs.append(freq)
-            self.amps.append(amp)
-            self.phases.append(phase)
-            self.xs.append(amp*cos(phase*pi/180))
-            self.ys.append(amp*sin(phase*pi/180))
-            self.db.insert_datum((rec_id, freq, amp, phase, TC, ST, ts))
-            self.measured.emit()
+            self.measured.emit((freq, amp, phase, TC, ST, ts))
             t2 = time()
             print(t2-t1)
         self.sequence_over.emit()
-
-
-class DB()
 
 
 if __name__ == "__main__":
