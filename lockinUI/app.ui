@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>935</width>
+    <height>722</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Lock-in Interface</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_4">
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="0">
+      <widget class="PlotWidget" name="xyplotter"/>
+     </item>
+     <item row="1" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Lock-in Pannel</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <layout class="QFormLayout" name="formLayout_2">
+            <item row="0" column="0">
+             <widget class="QLabel" name="outputLabel">
+              <property name="text">
+               <string>output</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="outputLineEdit"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="TCLabel">
+              <property name="text">
+               <string>TC</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="TCLineEdit"/>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Sweeper</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <layout class="QFormLayout" name="formLayout">
+            <item row="0" column="0">
+             <widget class="QLabel" name="startLabel">
+              <property name="text">
+               <string>start:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="startLineEdit"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="endLabel">
+              <property name="text">
+               <string>end: </string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="endLineEdit"/>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="numberLabel">
+              <property name="text">
+               <string>number: </string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="numberLineEdit"/>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="averageLabel">
+              <property name="text">
+               <string>average</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLineEdit" name="averageLineEdit">
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="autoTCLabel">
+              <property name="text">
+               <string>autoTC</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QCheckBox" name="autoTCCheckBox"/>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="logsweepLabel">
+              <property name="text">
+               <string>logsweep</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QCheckBox" name="logsweepCheckBox"/>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton">
+            <property name="text">
+             <string>RUN</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="0" column="0">
+      <widget class="PlotWidget" name="ampplotter"/>
+     </item>
+     <item row="0" column="1">
+      <widget class="PlotWidget" name="phaseplotter"/>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlotWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>pyqtgraph</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>outputLineEdit</sender>
+   <signal>returnPressed()</signal>
+   <receiver>Form</receiver>
+   <slot>set_output()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>482</x>
+     <y>131</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>517</x>
+     <y>52</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>TCLineEdit</sender>
+   <signal>returnPressed()</signal>
+   <receiver>Form</receiver>
+   <slot>set_TC()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>561</x>
+     <y>159</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>603</x>
+     <y>145</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>sweep()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>503</x>
+     <y>394</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>510</x>
+     <y>464</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>set_output()</slot>
+  <slot>set_TC()</slot>
+  <slot>sweep()</slot>
+ </slots>
+</ui>
