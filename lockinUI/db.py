@@ -15,6 +15,8 @@ class DataBase:
         records_name integer NOT NULL,
         {},
         FOREIGN KEY (records_name) REFERENCES records (name)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
         );""".format(',\n'.join([i+' '+j for i, j in data_fields.items()]))
 
         self.record_insert_sql = 'INSERT INTO records ({}) VALUES ({})'.format(
